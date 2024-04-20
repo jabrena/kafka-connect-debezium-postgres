@@ -17,79 +17,95 @@ The demo steps are as follows (and detailed below):
 Demo steps breakdown:
 
 Build Spring Boot application with Java 17:
-```
+
+```bash
 mvn clean install
+./mvnw clean package -DskipTests
 ```
 
 Start Docker containers:
-```
+
+```bash
 docker-compose up -d
 ```
 
 Check status of Kafka Connect:
-```
+
+```bash
 curl localhost:8083
 ```
 
 List registered connectors (empty array initially):
-```
+
+```bash
 curl localhost:8083/connectors
 ```
 
 Register connector:
-```
+
+```bash
 curl -X POST localhost:8083/connectors -H "Content-Type: application/json" -d @./connector/debezium-postgres-source-connector.json
 ```
 
 List registered connectors:
-```
+
+```bash
 curl localhost:8083/connectors
 ["debezium-postgres-source-connector"]
 ```
 
 Start Spring Boot application:
-```
+
+```bash
 java -jar target/kafka-connect-debezium-postgres-demo-1.0.0.jar
 ```
 
 Jump onto Kafka docker container:
-```
+
+```bash
 docker exec -ti kafka bash
 ```
 
 Start console-consumer to listen for outbox event:
-```
+
+```bash
 kafka-console-consumer --topic outbox.event.item --bootstrap-server kafka:29092
 ```
 
 In a second terminal window use curl to submit a POST REST request to the application to create an item:
-```
+
+```bash
 curl -i -X POST localhost:9001/v1/item -H "Content-Type: application/json" -d '{"name": "test-item"}'
 ```
 
 A response should be returned with the 201 CREATED status code and the new item id in the Location header:
-```
+
+```bash
 HTTP/1.1 201 
 Location: 3e97d918-85cf-47ce-b58f-e13be187f080
 ```
 
 The Spring Boot application should log the successful item and outbox entities persistence:
-```
+
+```bash
 Item created with id 3e97d918-85cf-47ce-b58f-e13be187f080 - and Outbox entity created with Id: 687e5def-2c87-4d5b-ade1-27f8b4ed41b1
 ```
 
 View outbox event consumed by the console-consumer from Kafka:
-```
+
+```bash
 {"schema":{"type":"string","optional":true},"payload":"{\"id\":\"3e97d918-85cf-47ce-b58f-e13be187f080\",\"name\":\"test-item\"}"}
 ```
 
 Delete registered connector:
-```
+
+```bash
 curl -i -X DELETE localhost:8083/connectors/debezium-postgres-source-connector
 ```
 
 Stop containers:
-```
+
+```bash
 docker-compose down
 ```
 
@@ -108,6 +124,7 @@ The tests demonstrate the application publishing events using the Transactional 
 For more on the component tests see: https://github.com/lydtechconsulting/component-test-framework
 
 Build Spring Boot application jar:
+
 ```
 mvn clean install
 ```
